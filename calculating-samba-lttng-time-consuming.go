@@ -62,6 +62,8 @@ type result struct {
 	call_time_sum float64
 }
 
+var final_relust []result
+
 var result_map = make(map[string]result)
 
 //var matchEnterName string
@@ -126,11 +128,27 @@ func analyze_the_result() {
 								matchExitTime, _ = time.Parse("15:04:05", matchVFSExitTime)
 								//fmt.Println(matchExitTime)
 
-								temp := result_map[matchExitName]
-								temp.call_name = matchExitName
-								temp.call_number += 1
-								temp.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
-								result_map[matchExitName] = temp
+								for _, v := range final_relust {
+									if v.call_name == matchExitName {
+										v.call_number += 1
+										v.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
+									} else {
+										v.call_name = matchExitName
+										v.call_number += 1
+										v.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
+									}
+								}
+								//_, ok:= result_map[matchExitName]
+								//if ok {
+								//	temp := result_map[matchExitName]
+								//	temp.call_name = matchExitName
+								//	temp.call_number += 1
+								//	temp.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
+								//	result_map[matchExitName] = temp
+								//} else {
+								//	result_map[matchExitName]
+								//}
+
 
 								reslut_time := fmt.Sprintf("%s: %f", matchExitName, float64(matchExitTime.Sub(matchEnterTime)))
 								fmt.Println(reslut_time)
@@ -151,7 +169,7 @@ func analyze_the_result() {
 }
 
 func lttng_result_print() {
-	for _, v := range result_map {
+	for _, v := range final_relust {
 		fmt.Println(v.call_name, v.call_number, v.call_time_sum)
 	}
 }
