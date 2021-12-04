@@ -128,36 +128,41 @@ func analyze_the_result() {
 								matchExitTime, _ = time.Parse("15:04:05", matchVFSExitTime)
 								//fmt.Println(matchExitTime)
 
-								if len(final_relust) == 0 {
-									add_result := result {
-										matchExitName,
-										1,
-										float64(matchExitTime.Sub(matchEnterTime)),
-									}
-									final_relust = append(final_relust, add_result)
-								} else {
-								for _, v := range final_relust {
-									if v.call_name == matchExitName {
-										v.call_number += 1
-										v.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
-									} else {
-										v.call_name = matchExitName
-										v.call_number += 1
-										v.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
-									}
-								}
-								}
-
-								//_, ok:= result_map[matchExitName]
-								//if ok {
-								//	temp := result_map[matchExitName]
-								//	temp.call_name = matchExitName
-								//	temp.call_number += 1
-								//	temp.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
-								//	result_map[matchExitName] = temp
+								//if len(final_relust) == 0 {
+								//	add_result := result {
+								//		matchExitName,
+								//		1,
+								//		float64(matchExitTime.Sub(matchEnterTime)),
+								//	}
+								//	final_relust = append(final_relust, add_result)
 								//} else {
-								//	result_map[matchExitName]
+								//for _, v := range final_relust {
+								//	if v.call_name == matchExitName {
+								//		v.call_number += 1
+								//		v.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
+								//	} else {
+								//		v.call_name = matchExitName
+								//		v.call_number += 1
+								//		v.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
+								//	}
 								//}
+								//}
+
+								_, ok:= result_map[matchExitName]
+								if ok {
+									temp := result_map[matchExitName]
+									temp.call_name = matchExitName
+									temp.call_number += 1
+									temp.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
+									result_map[matchExitName] = temp
+								} else {
+									temp := result {
+										matchExitName,
+										0,
+										0,
+									}
+									result_map[matchExitName] = temp
+								}
 
 
 								reslut_time := fmt.Sprintf("%s: %f", matchExitName, float64(matchExitTime.Sub(matchEnterTime)))
