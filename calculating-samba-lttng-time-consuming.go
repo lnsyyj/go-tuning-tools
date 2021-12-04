@@ -128,16 +128,23 @@ func analyze_the_result() {
 								matchExitTime, _ = time.Parse("15:04:05", matchVFSExitTime)
 								//fmt.Println(matchExitTime)
 
-								for _, v := range final_relust {
-									if v.call_name == matchExitName {
-										v.call_number += 1
-										v.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
-									} else {
-										v.call_name = matchExitName
-										v.call_number += 1
-										v.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
+								if len(final_relust) > 0 {
+									for _, v := range final_relust {
+										if v.call_name == matchExitName {
+											v.call_number += 1
+											v.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
+										} else {
+											v.call_name = matchExitName
+											v.call_number += 1
+											v.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
+										}
 									}
+								} else {
+									final_relust[0].call_name = matchExitName
+									final_relust[0].call_number += 1
+									final_relust[0].call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
 								}
+
 								//_, ok:= result_map[matchExitName]
 								//if ok {
 								//	temp := result_map[matchExitName]
