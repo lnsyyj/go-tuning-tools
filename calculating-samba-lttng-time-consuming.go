@@ -57,8 +57,9 @@ func separate_enter_and_exit() {
 }
 
 type result struct {
+	call_name string
 	call_number int
-	call_time_sum time.Time
+	call_time_sum float64
 }
 
 var result_map = make(map[string]result)
@@ -73,7 +74,7 @@ func analyze_the_result() {
 	pattern_exit := "vfs_lttng:(.*)_exit"
 	for _, enterValue := range lttng_enter_line_number {
 		strEnterContent := lttng_file_content_arr[enterValue]
-		fmt.Println(strEnterContent)
+		//fmt.Println(strEnterContent)
 		// 匹配VFS名称
 		matched, err := regexp.MatchString(pattern_enter, strEnterContent)
 		if err != nil {
@@ -97,10 +98,10 @@ func analyze_the_result() {
 				matchEnterTime, _ := time.Parse("15:04:05", matchVFSEnterTime)
 				//fmt.Println(matchEnterTime)
 
-				fmt.Println(len(lttng_exit_line_number))
+				//fmt.Println(len(lttng_exit_line_number))
 				for i := 0; i < len(lttng_exit_line_number); i++ {
 					strExitContent := lttng_file_content_arr[lttng_exit_line_number[i]]
-					fmt.Println(strExitContent)
+					//fmt.Println(strExitContent)
 					//匹配VFS名称
 					matched, err := regexp.MatchString(pattern_exit, strExitContent)
 					if err != nil {
@@ -110,7 +111,7 @@ func analyze_the_result() {
 						compileRegex := regexp.MustCompile(pattern_exit)
 						matchArr := compileRegex.FindStringSubmatch(strExitContent)
 						matchExitName = matchArr[len(matchArr) - 1]
-						fmt.Println(matchExitName)
+
 						// 匹配exit时间
 						if matchEnterName == matchExitName {
 							matched, err = regexp.MatchString("\\[(.*)\\]", strExitContent)
@@ -123,9 +124,19 @@ func analyze_the_result() {
 								matchVFSExitTime := matchArr[len(matchArr) - 1]
 								//fmt.Println(matchVFSEnterTime)
 								matchExitTime, _ = time.Parse("15:04:05", matchVFSExitTime)
-								fmt.Println(matchExitTime)
-								fmt.Println("matchExitTime - matchEnterTime")
-								fmt.Println(matchExitTime.Sub(matchEnterTime))
+								//fmt.Println(matchExitTime)
+
+								temp := result_map[matchExitName]
+								temp.call_name = matchExitName
+								temp.call_number += 1
+								temp.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
+								result_map[matchExitName] = temp
+
+								reslut_time := fmt.Sprintf("%s: %f", matchExitName, float64(matchExitTime.Sub(matchEnterTime)))
+								fmt.Println(reslut_time)
+								//fmt.Println(matchExitName + float64(matchExitTime.Sub(matchEnterTime)))
+								//fmt.Println("matchExitTime - matchEnterTime")
+								//fmt.Println(float64(matchExitTime.Sub(matchEnterTime)))
 								lttng_exit_line_number = append(lttng_exit_line_number[:i], lttng_exit_line_number[i+1:]...)
 								break
 							}
@@ -139,6 +150,12 @@ func analyze_the_result() {
 	}
 }
 
+func lttng_result_print() {
+	for k, v := range result_map {
+		fmt.Println(k, v.call_name, v.call_time_sum, v.call_time_sum)
+	}
+}
+
 func main() {
 	var (
 		filePath = kingpin.Flag(
@@ -146,6 +163,7 @@ func main() {
 			"file path to be parsed.",
 		).Default("F:/TMP/linux.samba.ceph.libcephfs.lttng.log").String()
 	)
+	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 
 	fmt.Println(*filePath)
@@ -153,9 +171,11 @@ func main() {
 		read_lttng_log(*filePath)
 		separate_enter_and_exit()
 		analyze_the_result()
+		lttng_result_print()
 		//fmt.Println(lttng_enter_line_number)
 		//fmt.Println(lttng_exit_line_number)
 	} else {
 		fmt.Println("file.path is empty, there is no parseable file.")
+		fmt.Println("It's ugly but works.")
 	}
 }
