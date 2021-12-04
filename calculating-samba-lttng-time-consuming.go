@@ -185,7 +185,7 @@ func analyze_the_result() {
 
 func lttng_result_print() {
 	fmt.Println("==========================")
-	for _, v := range final_relust {
+	for _, v := range result_map {
 		fmt.Println(v.call_name, v.call_number, v.call_time_sum)
 	}
 }

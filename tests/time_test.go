@@ -16,3 +16,7 @@ func TestTimes(t *testing.T) {
 	}
 
 }
+
+func TestMap(t *testing.T) {
+
+}
