@@ -140,9 +140,12 @@ func analyze_the_result() {
 										}
 									}
 								} else {
-									final_relust[0].call_name = matchExitName
-									final_relust[0].call_number += 1
-									final_relust[0].call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
+									add_result := result {
+										matchExitName,
+										1,
+										float64(matchExitTime.Sub(matchEnterTime)),
+									}
+									final_relust = append(final_relust, add_result)
 								}
 
 								//_, ok:= result_map[matchExitName]
