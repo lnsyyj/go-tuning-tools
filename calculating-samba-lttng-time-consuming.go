@@ -38,18 +38,12 @@ func read_lttng_log(filePath string) {
 
 func separate_enter_and_exit() {
 	for lineNumber, value := range lttng_file_content_arr {
-		matched_enter, err_enter := regexp.MatchString("vfs_lttng:(.*)_enter", value)
-		if err_enter != nil {
-			panic(err_enter)
-		}
+		matched_enter, _ := regexp.MatchString("vfs_lttng:(.*)_enter", value)
 		if matched_enter {
 			lttng_enter_line_number = append(lttng_enter_line_number, lineNumber)
 		}
 
-		matched_exit, err_exit := regexp.MatchString("vfs_lttng:(.*)_exit", value)
-		if err_exit != nil {
-			panic(err_exit)
-		}
+		matched_exit, _ := regexp.MatchString("vfs_lttng:(.*)_exit", value)
 		if matched_exit {
 			lttng_exit_line_number = append(lttng_exit_line_number, lineNumber)
 		}
@@ -59,17 +53,70 @@ func separate_enter_and_exit() {
 type result struct {
 	call_name string
 	call_number int
-	call_time_sum float64
+	call_time_sum int
 }
 
-var final_relust []result
+//var final_relust []result
 
 var result_map = make(map[string]result)
 
 //var matchEnterName string
-var matchExitName string
+//var matchExitName string
 //var matchEnterTime time.Time
-var matchExitTime time.Time
+//var matchExitTime time.Time
+
+var result2_pattern_enter = "vfs_lttng:(.*)_enter"
+var result2_pattern_exit = "vfs_lttng:(.*)_exit"
+var result2_pattern_time = "\\[(.*)\\]"
+
+func analyze_the_result2() {
+	for _, enterValue := range lttng_enter_line_number {
+		strEnterContent := lttng_file_content_arr[enterValue]
+		// 匹配enter名字
+		compileRegexEnterName := regexp.MustCompile(result2_pattern_enter)
+		matchEnterNameArr := compileRegexEnterName.FindStringSubmatch(strEnterContent)
+		matchEnterName := matchEnterNameArr[len(matchEnterNameArr) - 1]
+		// 匹配enter时间
+		compileRegexEnterTime := regexp.MustCompile(result2_pattern_time)
+		matchEnterTimeArr := compileRegexEnterTime.FindStringSubmatch(strEnterContent)
+		matchVFSEnterTime := matchEnterTimeArr[len(matchEnterTimeArr) - 1]
+		matchEnterTime, _ := time.Parse("15:04:05", matchVFSEnterTime)
+		// 将matchEnterName加入到may中
+		_, ok:= result_map[matchEnterName]
+		if !ok {
+			temp := result {
+				matchEnterName,
+				0,
+				0,
+			}
+			result_map[matchEnterName] = temp
+		}
+
+		for i := 0; i < len(lttng_exit_line_number); i++ {
+			strExitContent := lttng_file_content_arr[lttng_exit_line_number[i]]
+			// 匹配exit名字
+			compileRegexExitName := regexp.MustCompile(result2_pattern_exit)
+			matchExitNameArr := compileRegexExitName.FindStringSubmatch(strExitContent)
+			matchExitName := matchExitNameArr[len(matchExitNameArr) - 1]
+			// 匹配exit时间
+			compileRegexExitTime := regexp.MustCompile(result2_pattern_time)
+			matchExitTimeArr := compileRegexExitTime.FindStringSubmatch(strExitContent)
+			matchVFSExitTime := matchExitTimeArr[len(matchExitTimeArr) - 1]
+			matchExitTime, _ := time.Parse("15:04:05", matchVFSExitTime)
+			//
+			if matchEnterName == matchExitName {
+				temp := result_map[matchEnterName]
+				//temp.call_name = matchEnterName
+				temp.call_number += 1
+				temp.call_time_sum += int(matchExitTime.Sub(matchEnterTime))
+				result_map[matchEnterName] = temp
+
+				lttng_exit_line_number = append(lttng_exit_line_number[:i], lttng_exit_line_number[i+1:]...)
+				break
+			}
+		}
+	}
+}
 
 func analyze_the_result() {
 	pattern_enter := "vfs_lttng:(.*)_enter"
@@ -98,7 +145,7 @@ func analyze_the_result() {
 				matchArr := compileRegex.FindStringSubmatch(strEnterContent)
 				matchVFSEnterTime := matchArr[len(matchArr) - 1]
 				matchEnterTime, _ := time.Parse("15:04:05", matchVFSEnterTime)
-				//fmt.Println(matchEnterTime)
+				fmt.Println(matchEnterTime)
 
 				//fmt.Println(len(lttng_exit_line_number))
 				for i := 0; i < len(lttng_exit_line_number); i++ {
@@ -112,7 +159,7 @@ func analyze_the_result() {
 					if matched {
 						compileRegex := regexp.MustCompile(pattern_exit)
 						matchArr := compileRegex.FindStringSubmatch(strExitContent)
-						matchExitName = matchArr[len(matchArr) - 1]
+						matchExitName := matchArr[len(matchArr) - 1]
 
 						// 匹配exit时间
 						if matchEnterName == matchExitName {
@@ -125,8 +172,8 @@ func analyze_the_result() {
 								matchArr := compileRegex.FindStringSubmatch(strExitContent)
 								matchVFSExitTime := matchArr[len(matchArr) - 1]
 								//fmt.Println(matchVFSEnterTime)
-								matchExitTime, _ = time.Parse("15:04:05", matchVFSExitTime)
-								//fmt.Println(matchExitTime)
+								matchExitTime, _ := time.Parse("15:04:05", matchVFSExitTime)
+								fmt.Println(matchExitTime)
 
 								//if len(final_relust) == 0 {
 								//	add_result := result {
@@ -153,7 +200,7 @@ func analyze_the_result() {
 									temp := result_map[matchExitName]
 									temp.call_name = matchExitName
 									temp.call_number += 1
-									temp.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
+									temp.call_time_sum += int(matchExitTime.Sub(matchEnterTime))
 									result_map[matchExitName] = temp
 								} else {
 									temp := result {
@@ -195,8 +242,6 @@ func lttng_result_print() {
 		lttng_reslut_time := fmt.Sprintf("%s : %d : %f", v.call_name, v.call_number, v.call_time_sum/1000000000)
 		println(lttng_reslut_time)
 	}
-
-
 }
 
 func main() {
@@ -213,7 +258,8 @@ func main() {
 	if *filePath != "" {
 		read_lttng_log(*filePath)
 		separate_enter_and_exit()
-		analyze_the_result()
+		analyze_the_result2()
+		//analyze_the_result()
 		lttng_result_print()
 		//fmt.Println(lttng_enter_line_number)
 		//fmt.Println(lttng_exit_line_number)
