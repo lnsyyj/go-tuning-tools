@@ -81,7 +81,7 @@ func analyze_the_result2() {
 		matchEnterTimeArr := compileRegexEnterTime.FindStringSubmatch(strEnterContent)
 		matchVFSEnterTime := matchEnterTimeArr[len(matchEnterTimeArr) - 1]
 		matchEnterTime, _ := time.Parse("15:04:05", matchVFSEnterTime)
-		// 将matchEnterName加入到may中
+		// 将matchEnterName加入到map中
 		_, ok:= result_map[matchEnterName]
 		if !ok {
 			temp := result {
@@ -108,10 +108,14 @@ func analyze_the_result2() {
 				temp := result_map[matchEnterName]
 				//temp.call_name = matchEnterName
 				temp.call_number += 1
+				yujiangDebug := fmt.Sprintf("%-40s - %-40s = %-40s", matchExitTime, matchEnterTime, float64(matchExitTime.Sub(matchEnterTime)))
+				fmt.Println(yujiangDebug)
 				temp.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
 				result_map[matchEnterName] = temp
 
 				lttng_exit_line_number = append(lttng_exit_line_number[:i], lttng_exit_line_number[i+1:]...)
+				matchEnterName = ""
+				matchExitName = ""
 				break
 			}
 		}
