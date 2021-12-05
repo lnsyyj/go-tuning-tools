@@ -108,7 +108,7 @@ func analyze_the_result2() {
 				temp := result_map[matchEnterName]
 				//temp.call_name = matchEnterName
 				temp.call_number += 1
-				yujiangDebug := fmt.Sprintf("%-40s - %-40s = %-40s", matchExitTime, matchEnterTime, float64(matchExitTime.Sub(matchEnterTime)))
+				yujiangDebug := fmt.Sprintf("%-40s - %-40s = %-40f", matchExitTime, matchEnterTime, float64(matchExitTime.Sub(matchEnterTime)))
 				fmt.Println(yujiangDebug)
 				temp.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
 				result_map[matchEnterName] = temp
