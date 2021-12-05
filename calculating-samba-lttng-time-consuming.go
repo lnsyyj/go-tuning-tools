@@ -53,7 +53,7 @@ func separate_enter_and_exit() {
 type result struct {
 	call_name string
 	call_number int
-	call_time_sum int
+	call_time_sum float64
 }
 
 //var final_relust []result
@@ -108,7 +108,7 @@ func analyze_the_result2() {
 				temp := result_map[matchEnterName]
 				//temp.call_name = matchEnterName
 				temp.call_number += 1
-				temp.call_time_sum += int(matchExitTime.Sub(matchEnterTime))
+				temp.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
 				result_map[matchEnterName] = temp
 
 				lttng_exit_line_number = append(lttng_exit_line_number[:i], lttng_exit_line_number[i+1:]...)
@@ -200,7 +200,7 @@ func analyze_the_result() {
 									temp := result_map[matchExitName]
 									temp.call_name = matchExitName
 									temp.call_number += 1
-									temp.call_time_sum += int(matchExitTime.Sub(matchEnterTime))
+									temp.call_time_sum += float64(matchExitTime.Sub(matchEnterTime))
 									result_map[matchExitName] = temp
 								} else {
 									temp := result {
@@ -233,13 +233,13 @@ func analyze_the_result() {
 func lttng_result_print() {
 	fmt.Println("==========================")
 	for _, v := range result_map {
-		lttng_reslut_time :=  fmt.Sprintf("%s : %d : %d", v.call_name, v.call_number, v.call_time_sum)
+		lttng_reslut_time :=  fmt.Sprintf("%-40s : %d : %f", v.call_name, v.call_number, v.call_time_sum)
 		println(lttng_reslut_time)
 		//fmt.Println(v.call_name, v.call_number, v.call_time_sum)
 	}
 	fmt.Println("==========================")
 	for _, v := range result_map {
-		lttng_reslut_time := fmt.Sprintf("%s : %d : %d", v.call_name, v.call_number, v.call_time_sum/1000000000)
+		lttng_reslut_time := fmt.Sprintf("%-40s : %d : %f", v.call_name, v.call_number, v.call_time_sum/1000000000)
 		println(lttng_reslut_time)
 	}
 }
